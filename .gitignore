@@ -1,0 +1,5 @@
+syntax: glob
+vendor/
+.idea/
+revision.json
+/tests/
