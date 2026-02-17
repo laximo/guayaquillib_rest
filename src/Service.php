@@ -115,12 +115,23 @@ class Service
         if (!empty($params)) {
             // Build query string: key1=value1&key2=value2...
             unset($params['Accept-Language']);
-            $queryString = http_build_query($params);
+
+            $queryString = [];
+            foreach ($params as $key => $value) {
+                if (is_array($value)) {
+                    foreach ($value as $subvalue) {
+                        $queryString[] = urlencode($key) . '=' . urlencode($subvalue);
+                    }
+                } else {
+                    $queryString[] = urlencode($key) . '=' . urlencode($value);
+                }
+            }
+
             return sprintf(
                 '%s/restApiV1/%s?%s',
                 $this->baseUrl,
                 rawurlencode($command->getOperation()),
-                $queryString
+                implode('&', $queryString)
             );
         }
         
@@ -142,65 +153,14 @@ class Service
     {
         try {
             $options = $this->buildRequestOptions($method, $command->getParams(), $headers);
+            print_r($method);
+            echo "\n\n";
+            print_r($url);
+            echo "\n\n";
+            print_r($options);
             $response = $this->client->request($method, $url, $options);
         } catch (GuzzleException $exception) {
             throw new RuntimeException('Unable to execute REST request: ' . $exception->getMessage(), 0, $exception);
-        }
-        $body = (string)$response->getBody();
-
-        if ($response->getStatusCode() !== 200) {
-            $message = 'Unknown error';
-            if (!empty($body)) {
-                $decoded = json_decode($body, true);
-                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                    // If new format: {"message": "E_ERROR:details"}
-                    $serviceMessage = $decoded['message'] ?? null;
-                    if ($serviceMessage && strpos($serviceMessage, 'E_') === 0) {
-                        list($reason, $detail) = explode(':', $serviceMessage, 2) + [null, null];
-                        switch (trim($reason)) {
-                            case 'E_CATALOGNOTEXISTS':
-                                throw new CatalogNotExistsException($serviceMessage);
-                            case 'E_INVALIDREQUEST':
-                                throw new InvalidRequestException($serviceMessage);
-                            case 'E_INVALIDPARAMETER':
-                                throw new InvalidParameterException($serviceMessage);
-                            case 'E_UNKNOWNCOMMAND':
-                                throw new UnknownCommandException($serviceMessage);
-                            case 'E_ACCESSDENIED':
-                                throw new AccessDeniedException($serviceMessage);
-                            case 'E_NOTSUPPORTED':
-                                throw new NotSupportedException($serviceMessage);
-                            case 'E_GROUP_IS_NOT_SEARCHABLE':
-                                throw new GroupIsNotSearchableException($serviceMessage);
-                            case 'E_TOO_MANY_REQUESTS':
-                                throw new TooManyRequestsException($serviceMessage);
-                            case 'E_STANDARD_PART_SEARCH':
-                                throw new StandardPartException($serviceMessage);
-                            case 'E_ACCESSLIMITREACHED':
-                                throw new AccessLimitReachedException($serviceMessage);
-                            case 'E_CATALOG_FEATURE_NOT_SUPPORTED':
-                                throw new CatalogFeatureNotSupportedExeption($serviceMessage);
-                            case 'E_OPERATION_NOT_FOUND':
-                                throw new OperationNotFoundException($serviceMessage);
-                            case 'E_TEMPORARY_UNAVAILABLE':
-                                throw new TemporaryUnavailableExeption($serviceMessage);
-                            case 'E_TIMEOUT':
-                                throw new TimeoutException($serviceMessage);
-                            case 'E_UNEXPECTED_PROBLEM':
-                                throw new UnexpectedProblemException($serviceMessage);
-                        }
-                        // If not recognized, throw generic
-                        throw new \RuntimeException($serviceMessage);
-                    }
-                    // If not in "E_xxx:detail" format, show raw message
-                    $message = $serviceMessage ?: ('HTTP Error ' . $response->getStatusCode());
-                } else {
-                    $message = 'HTTP Error: ' . $response->getStatusCode() . '. Unable to decode error response: ' . $body;
-                }
-            } else {
-                $message = 'HTTP Error: ' . $response->getStatusCode() . '. Empty error body.';
-            }
-            throw new \RuntimeException($message);
         }
 
         return $this->normalizeResponse($command, $response);
@@ -282,6 +242,63 @@ class Service
     private function normalizeResponse(Command $command, ResponseInterface $response) : BaseObject
     {
         $body = (string)$response->getBody();
+        print_r($body);
+
+        if ($response->getStatusCode() !== 200) {
+            $message = 'Unknown error';
+            if (!empty($body)) {
+                $decoded = json_decode($body, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    // If new format: {"message": "E_ERROR:details"}
+                    $serviceMessage = $decoded['message'] ?? null;
+                    if ($serviceMessage && strpos($serviceMessage, 'E_') === 0) {
+                        list($reason, $detail) = explode(':', $serviceMessage, 2) + [null, null];
+                        switch (trim($reason)) {
+                            case 'E_CATALOGNOTEXISTS':
+                                throw new CatalogNotExistsException($serviceMessage);
+                            case 'E_INVALIDREQUEST':
+                                throw new InvalidRequestException($serviceMessage);
+                            case 'E_INVALIDPARAMETER':
+                                throw new InvalidParameterException($serviceMessage);
+                            case 'E_UNKNOWNCOMMAND':
+                                throw new UnknownCommandException($serviceMessage);
+                            case 'E_ACCESSDENIED':
+                                throw new AccessDeniedException($serviceMessage);
+                            case 'E_NOTSUPPORTED':
+                                throw new NotSupportedException($serviceMessage);
+                            case 'E_GROUP_IS_NOT_SEARCHABLE':
+                                throw new GroupIsNotSearchableException($serviceMessage);
+                            case 'E_TOO_MANY_REQUESTS':
+                                throw new TooManyRequestsException($serviceMessage);
+                            case 'E_STANDARD_PART_SEARCH':
+                                throw new StandardPartException($serviceMessage);
+                            case 'E_ACCESSLIMITREACHED':
+                                throw new AccessLimitReachedException($serviceMessage);
+                            case 'E_CATALOG_FEATURE_NOT_SUPPORTED':
+                                throw new CatalogFeatureNotSupportedExeption($serviceMessage);
+                            case 'E_OPERATION_NOT_FOUND':
+                                throw new OperationNotFoundException($serviceMessage);
+                            case 'E_TEMPORARY_UNAVAILABLE':
+                                throw new TemporaryUnavailableExeption($serviceMessage);
+                            case 'E_TIMEOUT':
+                                throw new TimeoutException($serviceMessage);
+                            case 'E_UNEXPECTED_PROBLEM':
+                                throw new UnexpectedProblemException($serviceMessage);
+                        }
+                        // If not recognized, throw generic
+                        throw new RuntimeException($serviceMessage);
+                    }
+                    // If not in "E_xxx:detail" format, show raw message
+                    $message = $serviceMessage ?: ('HTTP Error ' . $response->getStatusCode());
+                } else {
+                    $message = 'HTTP Error: ' . $response->getStatusCode() . '. Unable to decode error response: ' . $body;
+                }
+            } else {
+                $message = 'HTTP Error: ' . $response->getStatusCode() . '. Empty error body.';
+            }
+            throw new RuntimeException($message);
+        }
+
         $parsedData = json_decode($body, true);
 
         if (json_last_error() === JSON_ERROR_NONE) {
@@ -340,10 +357,6 @@ class Service
 
         if ($this->login !== null || $this->password !== null) {
             $options['auth'] = [(string)$this->login, (string)$this->password, 'basic'];
-        }
-
-        if (count($queryParams) > 0) {
-            $options['query'] = $queryParams;
         }
 
         return $options;

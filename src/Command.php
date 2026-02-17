@@ -42,7 +42,13 @@ class Command
             } else {
                 $command .= '|';
             }
-            $command .= $key . '=' . $value;
+            if (is_array($value)) {
+                foreach ($value as $subValue) {
+                    $command .= $key . '=' . $subValue;
+                }
+            } else {
+                $command .= $key . '=' . $value;
+            }
         }
 
         $this->command = $command;

@@ -7,7 +7,7 @@ use GuayaquilLib\objects\am\ManufacturerListObject;
 use GuayaquilLib\objects\am\ManufacturerObject;
 use GuayaquilLib\objects\am\PartListObject;
 
-class ServiceAm extends RequestBase
+class ServiceAm extends Service
 {
     /**
      * @param string $oem
@@ -18,9 +18,9 @@ class ServiceAm extends RequestBase
      * @return PartListObject
      * @throws Exception
      */
-    public function findOem(string $oem, string $brand = '', array $options = [], array $replacementtypes = [], string $locale = 'ru_RU'): PartListObject
+    public function findOem(string $oem, string $brand = null, bool $returnImages, $replacementTypes = false, float $minRate = 0, string $locale = 'ru_RU'): PartListObject
     {
-        return $this->executeCommand(Am::findOem($oem, $brand, $options, $replacementtypes, $locale));
+        return $this->executeCommand(Am::findOem($oem, $brand, $returnImages, $replacementTypes, $minRate, $locale));
     }
 
     /**
@@ -31,9 +31,9 @@ class ServiceAm extends RequestBase
      * @return PartListObject
      * @throws Exception
      */
-    public function findPart(int $partId, array $options = [], array $replacementtypes = [], string $locale = 'ru_RU'): PartListObject
+    public function findPart(int $partId, bool $returnImages, $replacementTypes = false, float $minRate = 0, string $locale = 'ru_RU'): PartListObject
     {
-        return $this->executeCommand(Am::findPart($partId, $options, $replacementtypes, $locale));
+        return $this->executeCommand(Am::findPart($partId, $returnImages, $replacementTypes, $minRate, $locale));
     }
 
     public function listManufacturer(string $locale = 'ru_RU'): ManufacturerListObject

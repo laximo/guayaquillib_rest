@@ -3,24 +3,23 @@
 namespace GuayaquilLib\objects\am;
 
 use GuayaquilLib\objects\BaseObject;
-use SimpleXMLElement;
 
 class PartDimensions extends BaseObject
 {
     /**
      * @var float
      */
-    protected $d1;
+    protected $d1 = 0.0;
 
     /**
      * @var float
      */
-    protected $d2;
+    protected $d2 = 0.0;
 
     /**
      * @var float
      */
-    protected $d3;
+    protected $d3 = 0.0;
 
     /**
      * @return float
@@ -48,6 +47,17 @@ class PartDimensions extends BaseObject
 
     protected function fromJson($data)
     {
-        list($this->d1, $this->d2, $this->d3) = explode('X', $data);
+        if (!is_string($data) || trim($data) === '') {
+            return;
+        }
+
+        $parts = preg_split('/\s*[xX]\s*/', trim($data));
+        if (!is_array($parts) || count($parts) !== 3) {
+            return;
+        }
+
+        $this->d1 = (float)$parts[0];
+        $this->d2 = (float)$parts[1];
+        $this->d3 = (float)$parts[2];
     }
 }

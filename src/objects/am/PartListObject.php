@@ -5,7 +5,6 @@ namespace GuayaquilLib\objects\am;
 
 use Exception;
 use GuayaquilLib\objects\BaseObject;
-use SimpleXMLElement;
 
 class PartListObject extends BaseObject
 {
@@ -23,14 +22,43 @@ class PartListObject extends BaseObject
     }
 
     /**
-     * @param SimpleXMLElement $data
+     * @param $data
      * @throws Exception
      */
     protected function fromJson($data)
     {
-        foreach ($data as $detail) {
+        if (!is_array($data)) {
+            return;
+        }
+
+        foreach ($this->normalizeList($data) as $detail) {
+            if (!is_array($detail)) {
+                continue;
+            }
             $detail = new PartObject($detail);
             $this->oems[] = $detail;
         }
+    }
+
+    /**
+     * @param array<mixed> $data
+     * @return array<mixed>
+     */
+    private function normalizeList(array $data): array
+    {
+        if ($this->isAssoc($data)) {
+            return [$data];
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param array<mixed> $value
+     * @return bool
+     */
+    private function isAssoc(array $value): bool
+    {
+        return array_keys($value) !== range(0, count($value) - 1);
     }
 }

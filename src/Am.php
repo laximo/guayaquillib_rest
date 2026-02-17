@@ -5,13 +5,9 @@ namespace GuayaquilLib;
 use GuayaquilLib\objects\am\ManufacturerListObject;
 use GuayaquilLib\objects\am\ManufacturerObject;
 use GuayaquilLib\objects\am\PartListObject;
-use GuayaquilLib\objects\am\SecondLevelReplacementList;
 
 class Am
 {
-    public const optionsCrosses = 'crosses';
-    public const optionsImages = 'images';
-
     public const replacementTypePartOfTheWhole = 'PartOfTheWhole';
     public const replacementTypeReplacement = 'Replacement';
 
@@ -23,15 +19,29 @@ class Am
      * @param string $locale
      * @return Command
      */
-    public static function findOem(string $oem, string $brand = '', array $options = [], array $replacementTypes = [], string $locale = 'ru_RU'): Command
+    public static function findOem(string $oem, string $brand = null, bool $returnImages, $replacementTypes = false, float $minRate = 0, string $locale = 'ru_RU'): Command
     {
-        return new Command('findOEM', [
-            'Locale' => $locale,
-            'Brand' => $brand,
-            'OEM' => $oem,
-            'ReplacementTypes' => count($replacementTypes) ? implode(',', $replacementTypes) : 'default',
-            'Options' => implode(',', $options),
-        ], 'am', PartListObject::class, true);
+        $params = [
+            'Accept-Language' => $locale,
+            'oem' => $oem,
+            'showImages' => $returnImages,
+            'minRate' => $minRate,
+        ];
+
+        if ($brand !== '' && isset($brand)) {
+            $params['brand'] = $brand;
+        }
+
+        if ($replacementTypes === true) {
+            $params['replacementTypes'] = [
+                self::replacementTypePartOfTheWhole,
+                self::replacementTypeReplacement,
+            ];
+        } elseif (is_array($replacementTypes) && count($replacementTypes) > 0) {
+            $params['replacementTypes'] = $replacementTypes;
+        }
+
+        return new Command('findOem', $params, 'am', PartListObject::class, true);
     }
 
     /**
@@ -41,28 +51,39 @@ class Am
      * @param string $locale
      * @return Command
      */
-    public static function findPart(int $partId, array $options = [], array $replacementTypes = [], string $locale = 'ru_RU'): Command
+    public static function findPart(int $partId, bool $returnImages, $replacementTypes = false, float $minRate = 0, string $locale = 'ru_RU'): Command
     {
-        return new Command('findDetail', [
-            'Locale' => $locale,
-            'DetailId' => $partId,
-            'ReplacementTypes' => count($replacementTypes) ? implode(',', $replacementTypes) : 'default',
-            'Options' => implode(',', $options),
-        ], 'am', PartListObject::class, true);
+        $params = [
+            'Accept-Language' => $locale,
+            'detailId' => $partId,
+            'showImages' => $returnImages,
+            'minRate' => $minRate,
+        ];
+
+        if ($replacementTypes === true) {
+            $params['replacementTypes'] = [
+                self::replacementTypePartOfTheWhole,
+                self::replacementTypeReplacement,
+            ];
+        } elseif (is_array($replacementTypes) && count($replacementTypes) > 0) {
+            $params['replacementTypes'] = $replacementTypes;
+        }
+
+        return new Command('findDetail', $params, 'am', PartListObject::class, true);
     }
 
     public static function listManufacturer(string $locale = 'ru_RU'): Command
     {
         return new Command('listManufacturer', [
-            'Locale' => $locale,
+            'Accept-Language' => $locale,
         ], 'am', ManufacturerListObject::class, false);
     }
 
     public static function getManufacturerInfo(int $manufacturerId, string $locale = 'ru_RU'): Command
     {
         return new Command('manufacturerInfo', [
-            'Locale' => $locale,
-            'ManufacturerId' => $manufacturerId,
+            'Accept-Language' => $locale,
+            'manufacturerId' => $manufacturerId,
         ], 'am', ManufacturerObject::class, false);
     }
 }

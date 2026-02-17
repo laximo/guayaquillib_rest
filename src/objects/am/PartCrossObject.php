@@ -4,29 +4,33 @@ namespace GuayaquilLib\objects\am;
 
 use Exception;
 use GuayaquilLib\objects\BaseObject;
-use SimpleXMLElement;
 
 class PartCrossObject extends BaseObject
 {
     /**
      * @var float
      */
-    protected $rate;
+    protected $rate = 0.0;
 
     /**
      * @var string
      */
-    protected $type;
+    protected $type = '';
 
     /**
      * @var string
      */
-    protected $way;
+    protected $way = '';
 
     /**
      * @var PartObject
      */
     protected $part;
+
+    /**
+     * @var int
+     */
+    protected $replacementId = 0;
 
     /**
      * @return float
@@ -61,13 +65,28 @@ class PartCrossObject extends BaseObject
     }
 
     /**
+     * @return int
+     */
+    public function getReplacementId(): int
+    {
+        return $this->replacementId;
+    }
+
+    /**
      * @throws Exception
      */
     protected function fromJson($data)
     {
-        $this->rate = (float)$data['rate'];
-        $this->type = (string)$data['type'];
-        $this->way = (string)$data['way'];
-        $this->part = new PartObject($data->detail);
+        $this->rate = (float)($data['rate'] ?? 0);
+        $this->type = (string)($data['type'] ?? '');
+        $this->way = (string)($data['way'] ?? '');
+        $this->replacementId = (int)($data['replacementId'] ?? $data['replacementid'] ?? 0);
+
+        $detail = $data['detail'] ?? [];
+        if (!is_array($detail)) {
+            $detail = [];
+        }
+
+        $this->part = new PartObject($detail);
     }
 }
