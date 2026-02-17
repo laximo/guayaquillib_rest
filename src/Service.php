@@ -127,7 +127,7 @@ class Service
             }
 
             return sprintf(
-                '%s/restApiV1/%s?%s',
+                '%s/restApi/v1/%s?%s',
                 $this->baseUrl,
                 rawurlencode($command->getOperation()),
                 implode('&', $queryString)
@@ -135,7 +135,7 @@ class Service
         }
         
         return sprintf(
-            '%s/restApiV1/%s',
+            '%s/restApi/v1/%s',
             $this->baseUrl,
             rawurlencode($command->getOperation())
         );
