@@ -52,7 +52,7 @@ class Service
     public function __construct(
         ?string $login = null,
         ?string $password = null,
-        string $baseUrl = 'https://ws.laximo.net/',
+        string $baseUrl = 'https://ws.laximo.ru/',
         array  $defaultHeaders = [
             'Accept-Language' => 'ru_RU',
             'accept' => 'application/json',

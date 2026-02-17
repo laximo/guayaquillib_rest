@@ -6,9 +6,24 @@ use Exception;
 use GuayaquilLib\objects\am\ManufacturerListObject;
 use GuayaquilLib\objects\am\ManufacturerObject;
 use GuayaquilLib\objects\am\PartListObject;
+use GuzzleHttp\Client;
 
 class ServiceAm extends Service
 {
+    public function __construct(
+        ?string $login = null,
+        ?string $password = null,
+        string $baseUrl = 'https://aws.laximo.ru/',
+        array  $defaultHeaders = [
+            'Accept-Language' => 'ru_RU',
+            'accept' => 'application/json',
+        ],
+        Client $client = null
+    )
+    {
+        parent::__construct($login, $password, $baseUrl, $defaultHeaders, $client);
+    }
+
     /**
      * @param string $oem
      * @param string $brand
@@ -18,7 +33,7 @@ class ServiceAm extends Service
      * @return PartListObject
      * @throws Exception
      */
-    public function findOem(string $oem, string $brand = null, bool $returnImages, $replacementTypes = false, float $minRate = 0, string $locale = 'ru_RU'): PartListObject
+    public function findOem(string $oem, string $brand = null, bool $returnImages = false, $replacementTypes = false, float $minRate = 0, string $locale = 'ru_RU'): PartListObject
     {
         return $this->executeCommand(Am::findOem($oem, $brand, $returnImages, $replacementTypes, $minRate, $locale));
     }

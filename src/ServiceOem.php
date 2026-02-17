@@ -18,9 +18,24 @@ use GuayaquilLib\objects\oem\UnitObject;
 use GuayaquilLib\objects\oem\VehicleListObject;
 use GuayaquilLib\objects\oem\VehicleObject;
 use GuayaquilLib\objects\oem\WizardObject;
+use GuzzleHttp\Client;
 
 class ServiceOem extends Service
 {
+    public function __construct(
+        ?string $login = null,
+        ?string $password = null,
+        string $baseUrl = 'https://ws.laximo.ru/',
+        array  $defaultHeaders = [
+            'Accept-Language' => 'ru_RU',
+            'accept' => 'application/json',
+        ],
+        Client $client = null
+    )
+    {
+        parent::__construct($login, $password, $baseUrl, $defaultHeaders, $client);
+    }
+
     function listCatalogs(string $locale = 'ru_RU'): CatalogListObject
     {
         return $this->executeCommand(Oem::listCatalogs($locale));
