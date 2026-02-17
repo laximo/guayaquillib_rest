@@ -79,10 +79,9 @@ class Service
      * @param string[]|array<string, string> $headers Additional HTTP headers
      * @return BaseObject
      */
-    public function executeCommand(Command $command, array $headers = []) : BaseObject
+    public function executeCommand(Command $command) : BaseObject
     {
-        $url = $this->buildUrl($command);
-        return $this->request('POST', $url, $command, $headers);
+        return $this->request($command);
     }
 
     /**
@@ -94,10 +93,10 @@ class Service
      * @param string[]|array<string, string> $headers Additional HTTP headers
      * @return BaseObject
      */
-    public function executeCommands($commands, array $headers = []) : array
+    public function executeCommands($commands) : array
     {
         if (is_array($commands)) {
-            return $this->requestMulti($commands, 'POST', $headers);
+            return $this->requestMulti($commands);
         }
 
         throw new InvalidArgumentException('Command must be an instance of Command or array of Command.');
@@ -149,16 +148,12 @@ class Service
      * @param string[]|array<string, string> $headers
      * @return BaseObject
      */
-    private function request(string $method, string $url, Command $command, array $headers): BaseObject
+    private function request(Command $command): BaseObject
     {
         try {
-            $options = $this->buildRequestOptions($method, $command->getParams(), $headers);
-            print_r($method);
-            echo "\n\n";
-            print_r($url);
-            echo "\n\n";
-            print_r($options);
-            $response = $this->client->request($method, $url, $options);
+            $url = $this->buildUrl($command);
+            $options = $this->buildRequestOptions($command);
+            $response = $this->client->request('POST', $url, $options);
         } catch (GuzzleException $exception) {
             throw new RuntimeException('Unable to execute REST request: ' . $exception->getMessage(), 0, $exception);
         }
@@ -178,7 +173,7 @@ class Service
      * @param string[]|array<string, string> $headers
      * @return array<int, BaseObject>
      */
-    private function requestMulti(array $commands, string $method, array $headers): array
+    private function requestMulti(array $commands): array
     {
         if (count($commands) === 0) {
             return [];
@@ -192,13 +187,13 @@ class Service
 
         $responses = [];
         $errors = [];
-        $requestFactory = function () use ($commands, $method, $headers) {
+        $requestFactory = function () use ($commands) {
             foreach ($commands as $command) {
-                yield function () use ($method, $command, $headers) {
+                yield function () use ($command) {
                     return $this->client->requestAsync(
-                        $method,
+                        'POST',
                         $this->buildUrl($command),
-                        $this->buildRequestOptions($method, $command->getParams(), $headers)
+                        $this->buildRequestOptions($command)
                     );
                 };
             };
@@ -242,7 +237,6 @@ class Service
     private function normalizeResponse(Command $command, ResponseInterface $response) : BaseObject
     {
         $body = (string)$response->getBody();
-        print_r($body);
 
         if ($response->getStatusCode() !== 200) {
             $message = 'Unknown error';
@@ -335,10 +329,10 @@ class Service
      * @param string[]|array<string, string> $headers
      * @return array<string, mixed>
      */
-    private function buildRequestOptions(string $method, array $params, array $headers): array
+    private function buildRequestOptions(Command $command): array
     {
-        $mergedHeaders = array_merge($this->defaultHeaders, $this->normalizeHeaders($headers));
-        $queryParams = $params;
+        $mergedHeaders = $this->defaultHeaders;
+        $queryParams = $command->getParams();
 
         if (isset($queryParams['Locale'])) {
             $mergedHeaders['Accept-Language'] = (string)$queryParams['Locale'];
