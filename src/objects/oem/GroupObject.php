@@ -11,11 +11,6 @@ class GroupObject extends BaseObject
     /**
      * @var string
      */
-    protected $contains;
-
-    /**
-     * @var string
-     */
     protected $name;
 
     /**
@@ -38,13 +33,6 @@ class GroupObject extends BaseObject
      */
     protected $childGroups = [];
 
-    /**
-     * @return string
-     */
-    public function getContains(): string
-    {
-        return $this->contains;
-    }
 
     /**
      * @return string
@@ -92,7 +80,6 @@ class GroupObject extends BaseObject
      */
     protected function fromJson(array $data)
     {
-        $this->contains = (string)($data['contains'] ?? '');
         $this->searchable = ($data['link'] ?? '') === true || (string)($data['link'] ?? '') === 'true';
         $this->name = (string)($data['name'] ?? '');
         $this->quickGroupId = (string)($data['quickGroupId'] ?? $data['quickgroupid'] ?? '');
