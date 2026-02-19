@@ -157,7 +157,7 @@ class Service
      * @param string[]|array<string, string> $headers
      * @return ResponseInterface
      */
-    private function request(Command $command): ResponseInterface
+    protected function request(Command $command): ResponseInterface
     {
         try {
             $url = $this->buildUrl($command);
@@ -180,7 +180,7 @@ class Service
      * @param string[]|array<string, string> $headers
      * @return array<int, ResponseInterface>
      */
-    private function requestMulti(array $commands): array
+    protected function requestMulti(array $commands): array
     {
         if (count($commands) === 0) {
             return [];
@@ -241,7 +241,7 @@ class Service
      * @param ResponseInterface $response
      * @return BaseObject
      */
-    private function normalizeResponse(Command $command, ResponseInterface $response) : BaseObject
+    protected function normalizeResponse(Command $command, ResponseInterface $response) : BaseObject
     {
         $body = (string)$response->getBody();
 
