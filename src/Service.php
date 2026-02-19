@@ -81,7 +81,9 @@ class Service
      */
     public function executeCommand(Command $command) : BaseObject
     {
-        return $this->request($command);
+        $response = $this->request($command);
+
+        return $this->normalizeResponse($command, $response);
     }
 
     /**
@@ -96,7 +98,14 @@ class Service
     public function executeCommands($commands) : array
     {
         if (is_array($commands)) {
-            return $this->requestMulti($commands);
+            $responses = $this->requestMulti($commands);
+            $result = [];
+
+            foreach ($responses as $index => $response) {
+                $result[$index] = $this->normalizeResponse($commands[$index], $response);
+            }
+
+            return $result;
         }
 
         throw new InvalidArgumentException('Command must be an instance of Command or array of Command.');
@@ -146,19 +155,17 @@ class Service
      * @param string $url
      * @param Command $command
      * @param string[]|array<string, string> $headers
-     * @return BaseObject
+     * @return ResponseInterface
      */
-    private function request(Command $command): BaseObject
+    private function request(Command $command): ResponseInterface
     {
         try {
             $url = $this->buildUrl($command);
             $options = $this->buildRequestOptions($command);
-            $response = $this->client->request('POST', $url, $options);
+            return $this->client->request('POST', $url, $options);
         } catch (GuzzleException $exception) {
             throw new RuntimeException('Unable to execute REST request: ' . $exception->getMessage(), 0, $exception);
         }
-
-        return $this->normalizeResponse($command, $response);
     }
 
     protected function getObject($data, string $className, bool $isArray): BaseObject
@@ -171,7 +178,7 @@ class Service
      * @param Command[] $commands
      * @param string $method
      * @param string[]|array<string, string> $headers
-     * @return array<int, BaseObject>
+     * @return array<int, ResponseInterface>
      */
     private function requestMulti(array $commands): array
     {
@@ -202,7 +209,7 @@ class Service
         $pool = new Pool($this->client, $requestFactory(), [
             'concurrency' => count($commands),
             'fulfilled' => function (ResponseInterface $response, int $index) use (&$responses, $commands): void {
-                $responses[$index] = $this->normalizeResponse($commands[$index], $response);
+                $responses[$index] = $response;
             },
             'rejected' => function ($reason, int $index) use (&$errors): void {
                 $errors[$index] = $reason;
