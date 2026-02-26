@@ -200,6 +200,9 @@ class Service
         $requestFactory = function () use ($commands) {
             foreach ($commands as $command) {
                 yield function () use ($command) {
+                    $url = $this->buildUrl($command);
+                    $command->setRequestUrl($url);
+
                     return $this->client->requestAsync(
                         'POST',
                         $this->buildUrl($command),
