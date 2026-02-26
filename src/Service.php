@@ -43,29 +43,29 @@ class Service
     private $password;
 
     /**
-     * @param string|null $login
-     * @param string|null $password
-     * @param string $baseUrl
+     * @param string|null                    $login
+     * @param string|null                    $password
+     * @param string                         $baseUrl
      * @param string[]|array<string, string> $defaultHeaders
-     * @param Client|null $client
+     * @param Client|null                    $client
      */
     public function __construct(
         ?string $login = null,
         ?string $password = null,
-        string $baseUrl = 'https://ws.laximo.ru/',
-        array  $defaultHeaders = [
+        string  $baseUrl = 'https://ws.laximo.ru/',
+        array   $defaultHeaders = [
             'Accept-Language' => 'ru_RU',
-            'accept' => 'application/json',
+            'accept'          => 'application/json',
         ],
-        Client $client = null
+        Client  $client = null
     )
     {
-        $this->baseUrl = rtrim($baseUrl, '/');
+        $this->baseUrl        = rtrim($baseUrl, '/');
         $this->defaultHeaders = $this->normalizeHeaders($defaultHeaders);
-        $this->login = $login;
-        $this->password = $password;
-        $this->client = $client ?: new Client([
-            'base_uri' => $this->baseUrl . '/',
+        $this->login          = $login;
+        $this->password       = $password;
+        $this->client         = $client ?: new Client([
+            'base_uri'    => $this->baseUrl . '/',
             'http_errors' => false,
         ]);
     }
@@ -75,11 +75,11 @@ class Service
      *
      * URL format: {baseUrl}/{service}/{operation}
      *
-     * @param Command $command
+     * @param Command                        $command
      * @param string[]|array<string, string> $headers Additional HTTP headers
      * @return BaseObject
      */
-    public function executeCommand(Command $command) : BaseObject
+    public function executeCommand(Command $command): BaseObject
     {
         $response = $this->request($command);
 
@@ -91,15 +91,15 @@ class Service
      *
      * URL format: {baseUrl}/{service}/{operation}
      *
-     * @param Command[] $command
+     * @param Command[]                      $command
      * @param string[]|array<string, string> $headers Additional HTTP headers
      * @return BaseObject
      */
-    public function executeCommands($commands) : array
+    public function executeCommands($commands): array
     {
         if (is_array($commands)) {
             $responses = $this->requestMulti($commands);
-            $result = [];
+            $result    = [];
 
             foreach ($responses as $index => $response) {
                 $result[$index] = $this->normalizeResponse($commands[$index], $response);
@@ -112,8 +112,8 @@ class Service
     }
 
     /**
-    // Start of Selection
-    /**
+     * // Start of Selection
+     * /**
      * @param Command $command
      * @return string
      */
@@ -142,7 +142,7 @@ class Service
                 implode('&', $queryString)
             );
         }
-        
+
         return sprintf(
             '%s/restApi/v1/%s',
             $this->baseUrl,
@@ -151,17 +151,19 @@ class Service
     }
 
     /**
-     * @param string $method
-     * @param string $url
-     * @param Command $command
+     * @param string                         $method
+     * @param string                         $url
+     * @param Command                        $command
      * @param string[]|array<string, string> $headers
      * @return ResponseInterface
      */
     protected function request(Command $command): ResponseInterface
     {
         try {
-            $url = $this->buildUrl($command);
+            $url     = $this->buildUrl($command);
             $options = $this->buildRequestOptions($command);
+            $command->setRequestUrl($url);
+
             return $this->client->request('POST', $url, $options);
         } catch (GuzzleException $exception) {
             throw new RuntimeException('Unable to execute REST request: ' . $exception->getMessage(), 0, $exception);
@@ -171,12 +173,13 @@ class Service
     protected function getObject($data, string $className, bool $isArray): BaseObject
     {
         $payload = $isArray ? $data : (is_array($data) ? $data : $data->row ?? $data);
+
         return new $className($payload);
     }
 
     /**
-     * @param Command[] $commands
-     * @param string $method
+     * @param Command[]                      $commands
+     * @param string                         $method
      * @param string[]|array<string, string> $headers
      * @return array<int, ResponseInterface>
      */
@@ -192,8 +195,8 @@ class Service
             }
         }
 
-        $responses = [];
-        $errors = [];
+        $responses      = [];
+        $errors         = [];
         $requestFactory = function () use ($commands) {
             foreach ($commands as $command) {
                 yield function () use ($command) {
@@ -208,10 +211,10 @@ class Service
 
         $pool = new Pool($this->client, $requestFactory(), [
             'concurrency' => count($commands),
-            'fulfilled' => function (ResponseInterface $response, int $index) use (&$responses, $commands): void {
+            'fulfilled'   => function (ResponseInterface $response, int $index) use (&$responses, $commands): void {
                 $responses[$index] = $response;
             },
-            'rejected' => function ($reason, int $index) use (&$errors): void {
+            'rejected'    => function ($reason, int $index) use (&$errors): void {
                 $errors[$index] = $reason;
             },
         ]);
@@ -220,8 +223,8 @@ class Service
 
         if (count($errors) > 0) {
             ksort($errors);
-            $index = array_key_first($errors);
-            $reason = $errors[$index];
+            $index   = array_key_first($errors);
+            $reason  = $errors[$index];
             $message = is_object($reason) && method_exists($reason, 'getMessage')
                 ? $reason->getMessage()
                 : (string)$reason;
@@ -237,11 +240,11 @@ class Service
     }
 
     /**
-     * @param Command $command
+     * @param Command           $command
      * @param ResponseInterface $response
      * @return BaseObject
      */
-    protected function normalizeResponse(Command $command, ResponseInterface $response) : BaseObject
+    protected function normalizeResponse(Command $command, ResponseInterface $response): BaseObject
     {
         $body = (string)$response->getBody();
 
@@ -331,15 +334,15 @@ class Service
     }
 
     /**
-     * @param string $method
-     * @param string[] $params
+     * @param string                         $method
+     * @param string[]                       $params
      * @param string[]|array<string, string> $headers
      * @return array<string, mixed>
      */
     private function buildRequestOptions(Command $command): array
     {
         $mergedHeaders = $this->defaultHeaders;
-        $queryParams = $command->getParams();
+        $queryParams   = $command->getParams();
 
         if (isset($queryParams['Locale'])) {
             $mergedHeaders['Accept-Language'] = (string)$queryParams['Locale'];
