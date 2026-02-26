@@ -22,20 +22,22 @@ class Command
     /** @var string[] */
     protected $params;
 
+    protected string $requestUrl;
+
     /**
-     * @param string $operation
+     * @param string   $operation
      * @param string[] $params
-     * @param string $service
-     * @param string $responseClassName
-     * @param bool $isResponseArray
+     * @param string   $service
+     * @param string   $responseClassName
+     * @param bool     $isResponseArray
      */
     public function __construct(string $operation, array $params, string $service, string $responseClassName, bool $isResponseArray)
     {
         $this->operation = $operation;
-        $this->params = $params;
+        $this->params    = $params;
 
         $command = $operation . ':';
-        $first = true;
+        $first   = true;
         foreach ($params as $key => $value) {
             if ($first) {
                 $first = false;
@@ -51,10 +53,10 @@ class Command
             }
         }
 
-        $this->command = $command;
-        $this->service = $service;
+        $this->command           = $command;
+        $this->service           = $service;
         $this->responseClassName = $responseClassName;
-        $this->isResponseArray = $isResponseArray;
+        $this->isResponseArray   = $isResponseArray;
     }
 
     /**
@@ -97,5 +99,15 @@ class Command
     public function isResponseArray(): bool
     {
         return $this->isResponseArray;
+    }
+
+    public function getRequestUrl(): string
+    {
+        return $this->requestUrl;
+    }
+
+    public function setRequestUrl(string $requestUrl): void
+    {
+        $this->requestUrl = $requestUrl;
     }
 }
