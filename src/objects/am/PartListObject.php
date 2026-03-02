@@ -27,7 +27,7 @@ class PartListObject extends BaseObject
      */
     protected function fromJson($data)
     {
-        if (!is_array($data)) {
+        if (!is_array($data) || empty($data)) {
             return;
         }
 
