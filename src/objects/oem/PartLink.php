@@ -115,14 +115,12 @@ class PartLink extends BaseObject
      */
     protected function fromJson(array $data)
     {
-        $this->catalog = (string)($data['catalog'] ?? $data['Catalog'] ?? '');
-        $this->categoryId = (string)($data['categoryId'] ?? $data['CategoryId'] ?? '');
+        $this->catalog = (string)($data['parameters']['catalog'] ?? $data['parameters']['Catalog'] ?? '');
+        $this->categoryId = (string)($data['parameters']['categoryId'] ?? $data['parameters']['CategoryId'] ?? '');
         $this->command = (string)($data['command'] ?? $data['Command'] ?? '');
-        $this->localized = ($data['localized'] ?? $data['Localized'] ?? '') === true
-            || (string)($data['localized'] ?? $data['Localized'] ?? '') === 'true';
-        $this->vehicleId = (string)($data['vehicleId'] ?? $data['VehicleId'] ?? '');
+        $this->vehicleId = (string)($data['parameters']['vehicleId'] ?? $data['parameters']['VehicleId'] ?? '');
         $this->label = (string)($data['label'] ?? '');
-        $this->ssd = (string)($data['ssd'] ?? '');
+        $this->ssd = (string)($data['parameters']['ssd'] ?? '');
         $this->type = (string)($data['type'] ?? '');
     }
 }
