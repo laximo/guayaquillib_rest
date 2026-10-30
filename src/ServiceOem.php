@@ -30,7 +30,7 @@ class ServiceOem extends Service
             'Accept-Language' => 'ru_RU',
             'accept' => 'application/json',
         ],
-        Client $client = null
+        ?Client $client = null
     )
     {
         parent::__construct($login, $password, $baseUrl, $defaultHeaders, $client);

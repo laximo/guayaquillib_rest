@@ -57,7 +57,7 @@ class Service
             'Accept-Language' => 'ru_RU',
             'accept'          => 'application/json',
         ],
-        Client  $client = null
+        ?Client $client = null
     )
     {
         $this->baseUrl        = rtrim($baseUrl, '/');
@@ -128,10 +128,18 @@ class Service
             foreach ($params as $key => $value) {
                 if (is_array($value)) {
                     foreach ($value as $subvalue) {
-                        $queryString[] = urlencode($key) . '=' . urlencode($subvalue);
+                        $encoded = $this->encodeQueryValue($subvalue);
+                        if ($encoded === null) {
+                            continue;
+                        }
+                        $queryString[] = urlencode((string)$key) . '=' . $encoded;
                     }
                 } else {
-                    $queryString[] = urlencode($key) . '=' . urlencode($value);
+                    $encoded = $this->encodeQueryValue($value);
+                    if ($encoded === null) {
+                        continue;
+                    }
+                    $queryString[] = urlencode((string)$key) . '=' . $encoded;
                 }
             }
 
@@ -148,6 +156,23 @@ class Service
             $this->baseUrl,
             rawurlencode($command->getOperation())
         );
+    }
+
+    /**
+     * @param mixed $value
+     * @return string|null
+     */
+    private function encodeQueryValue($value)
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_bool($value)) {
+            $value = $value ? '1' : '';
+        }
+
+        return urlencode((string)$value);
     }
 
     /**

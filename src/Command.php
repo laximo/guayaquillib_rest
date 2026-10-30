@@ -22,7 +22,8 @@ class Command
     /** @var string[] */
     protected $params;
 
-    protected string $requestUrl = '';
+    /** @var string */
+    protected $requestUrl = '';
 
     /**
      * @param string   $operation

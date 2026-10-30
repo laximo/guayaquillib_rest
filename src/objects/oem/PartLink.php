@@ -34,7 +34,7 @@ class PartLink extends BaseObject
     /**
      * @var bool
      */
-    private $localized;
+    private $localized = false;
 
     /**
      * @var string
@@ -115,12 +115,17 @@ class PartLink extends BaseObject
      */
     protected function fromJson(array $data)
     {
-        $this->catalog = (string)($data['parameters']['catalog'] ?? $data['parameters']['Catalog'] ?? '');
-        $this->categoryId = (string)($data['parameters']['categoryId'] ?? $data['parameters']['CategoryId'] ?? '');
+        $parameters = $data['parameters'] ?? [];
+        if (!is_array($parameters)) {
+            $parameters = [];
+        }
+
+        $this->catalog = (string)($parameters['catalog'] ?? $parameters['Catalog'] ?? '');
+        $this->categoryId = (string)($parameters['categoryId'] ?? $parameters['CategoryId'] ?? '');
         $this->command = (string)($data['command'] ?? $data['Command'] ?? '');
-        $this->vehicleId = (string)($data['parameters']['vehicleId'] ?? $data['parameters']['VehicleId'] ?? '');
+        $this->vehicleId = (string)($parameters['vehicleId'] ?? $parameters['VehicleId'] ?? '');
         $this->label = (string)($data['label'] ?? '');
-        $this->ssd = (string)($data['parameters']['ssd'] ?? '');
+        $this->ssd = (string)($parameters['ssd'] ?? '');
         $this->type = (string)($data['type'] ?? '');
     }
 }

@@ -59,6 +59,10 @@ class PartListObject extends BaseObject
      */
     private function isAssoc(array $value): bool
     {
+        if ($value === []) {
+            return false;
+        }
+
         return array_keys($value) !== range(0, count($value) - 1);
     }
 }

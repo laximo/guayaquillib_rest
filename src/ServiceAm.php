@@ -18,7 +18,7 @@ class ServiceAm extends Service
             'Accept-Language' => 'ru_RU',
             'accept' => 'application/json',
         ],
-        Client $client = null
+        ?Client $client = null
     )
     {
         parent::__construct($login, $password, $baseUrl, $defaultHeaders, $client);
@@ -33,7 +33,7 @@ class ServiceAm extends Service
      * @return PartListObject
      * @throws Exception
      */
-    public function findOem(string $oem, string $brand = null, bool $returnImages = false, $replacementTypes = false, float $minRate = 0, string $locale = 'ru_RU'): PartListObject
+    public function findOem(string $oem, ?string $brand = null, bool $returnImages = false, $replacementTypes = false, float $minRate = 0, string $locale = 'ru_RU'): PartListObject
     {
         return $this->executeCommand(Am::findOem($oem, $brand, $returnImages, $replacementTypes, $minRate, $locale));
     }

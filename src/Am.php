@@ -19,7 +19,7 @@ class Am
      * @param string $locale
      * @return Command
      */
-    public static function findOem(string $oem, string $brand = null, bool $returnImages, $replacementTypes = false, float $minRate = 0, string $locale = 'ru_RU'): Command
+    public static function findOem(string $oem, ?string $brand = null, bool $returnImages = false, $replacementTypes = false, float $minRate = 0, string $locale = 'ru_RU'): Command
     {
         $params = [
             'Accept-Language' => $locale,
